@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ress - Debb Enterprise | Official Store & Order Portal</title>
+  <link rel="icon" href="data:," />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#1e3a8a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Ress - Debb" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css" />
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+
+  <div class="bg-amber-500 text-slate-900 text-xs sm:text-sm font-semibold text-center py-2 px-4">
+    Welcome to Ress - Debb Enterprise! Fast nationwide delivery & easy online order tracking.
+  </div>
+
+  <!-- Navigation -->
+  <header class="bg-white shadow-sm sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <a href="#" class="flex items-center space-x-2">
+        <div class="w-10 h-10 rounded-lg bg-blue-900 text-amber-400 flex items-center justify-center font-bold text-lg shadow">RD</div>
+        <div>
+          <span class="font-extrabold text-lg sm:text-xl tracking-tight text-slate-900">Ress - Debb</span>
+          <span class="block text-xs text-blue-700 font-semibold -mt-1">ENTERPRISE</span>
+        </div>
+      </a>
+      <nav class="hidden md:flex space-x-8 text-sm font-medium text-slate-600">
+        <a href="#catalog" class="hover:text-blue-800 transition">Shop / Catalog</a>
+        <a href="#orders" class="hover:text-blue-800 transition">Track & Cancel Order</a>
+        <a href="#about" class="hover:text-blue-800 transition">Why Choose Us</a>
+        <a href="#faq" class="hover:text-blue-800 transition">FAQ</a>
+        <a href="#contact" class="hover:text-blue-800 transition">Contact</a>
+      </nav>
+      <div class="flex items-center space-x-3">
+        <button id="authBtn" onclick="openAuth()" class="text-xs sm:text-sm px-3 py-2 rounded-lg border border-slate-300 hover:bg-slate-100 font-medium">
+          <i class="fa-solid fa-user mr-1 text-blue-800"></i> <span id="authLabel">Log in</span>
+        </button>
+        <button id="installBtn" onclick="installApp()" class="hidden text-xs sm:text-sm px-3 py-2 rounded-lg border border-blue-900 text-blue-900 hover:bg-blue-50 font-semibold">
+          <i class="fa-solid fa-download mr-1"></i> Install app
+        </button>
+        <button onclick="toggleCart(true)" class="relative bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition flex items-center">
+          <i class="fa-solid fa-cart-shopping mr-2"></i> Cart
+          <span id="cartCount" class="ml-2 bg-amber-400 text-slate-900 font-bold px-2 py-0.5 rounded-full text-xs">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="gradient-bg text-white py-16 sm:py-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-10 items-center">
+      <div>
+        <span class="inline-block bg-blue-800/70 border border-blue-400/30 text-amber-300 text-xs font-semibold px-3 py-1 rounded-full mb-4">TRUSTED QUALITY & RELIABLE SERVICE</span>
+        <h1 class="text-3xl sm:text-5xl font-extrabold leading-tight mb-4">
+          Quality Products, Seamless Ordering with <span class="text-amber-400">Ress - Debb Enterprise</span>
+        </h1>
+        <p class="text-slate-200 text-base sm:text-lg mb-8">Browse our verified catalog, place your order in seconds, track delivery status, or cancel pending orders effortlessly.</p>
+        <div class="flex flex-wrap gap-4">
+          <a href="#catalog" class="bg-amber-400 hover:bg-amber-300 text-slate-900 font-bold px-6 py-3 rounded-lg shadow transition">Browse Products <i class="fa-solid fa-arrow-right ml-2"></i></a>
+          <a href="#orders" class="bg-white/10 hover:bg-white/20 border border-white/30 text-white font-semibold px-6 py-3 rounded-lg transition">Track or Cancel an Order</a>
+        </div>
+      </div>
+      <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 sm:p-8 space-y-5">
+        <div class="flex items-start space-x-4">
+          <div class="w-12 h-12 rounded-xl bg-amber-400/20 text-amber-300 flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-bolt"></i></div>
+          <div><h3 class="font-bold text-lg">Instant Online Ordering</h3><p class="text-slate-300 text-sm">Add items to your cart and get an Order ID with stock reserved immediately.</p></div>
+        </div>
+        <div class="flex items-start space-x-4">
+          <div class="w-12 h-12 rounded-xl bg-emerald-400/20 text-emerald-300 flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-rotate-left"></i></div>
+          <div><h3 class="font-bold text-lg">Flexible Order Cancellation</h3><p class="text-slate-300 text-sm">Cancel any Pending or Processing order in one click, with stock restored automatically.</p></div>
+        </div>
+        <div class="flex items-start space-x-4">
+          <div class="w-12 h-12 rounded-xl bg-blue-400/20 text-blue-300 flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-shield-halved"></i></div>
+          <div><h3 class="font-bold text-lg">100% Customer Satisfaction</h3><p class="text-slate-300 text-sm">Dedicated support for bulk orders, custom requests and swift delivery.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Catalog -->
+  <section id="catalog" class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+      <div>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Our Products & Supplies</h2>
+        <p class="text-slate-600 text-sm sm:text-base">Select items to place an order. Stock updates automatically.</p>
+      </div>
+      <div class="flex flex-wrap gap-3">
+        <input id="searchInput" oninput="renderProducts()" type="text" placeholder="Search products..." class="border border-slate-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-800" />
+        <select id="categoryFilter" onchange="renderProducts()" class="border border-slate-300 rounded-lg px-4 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-800">
+          <option value="All">All Categories</option>
+          <option value="Electronics">Electronics & Office</option>
+          <option value="Essentials">Home & Daily Essentials</option>
+          <option value="Packaging">Wholesale & Packaging</option>
+        </select>
+      </div>
+    </div>
+    <div id="productGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+  </section>
+
+  <!-- Orders -->
+  <section id="orders" class="py-16 bg-slate-100 border-y border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8">
+        <div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Manage, Track & Cancel Orders</h2>
+          <p class="text-slate-600 text-sm sm:text-base">Look up any order by its ID. Orders in <strong>Pending</strong> or <strong>Processing</strong> status can be cancelled.</p>
+        </div>
+        <form onsubmit="lookupOrder(event)" class="flex gap-2">
+          <input id="orderSearchInput" type="text" placeholder="Order ID (e.g. RDE-8492)" class="border border-slate-300 rounded-lg px-4 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-800 uppercase" />
+          <button class="bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded-lg text-sm font-semibold">Look up</button>
+        </form>
+      </div>
+
+      <div id="lookupResult" class="mb-10"></div>
+
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <h3 class="font-bold text-slate-900 text-lg">My Orders</h3>
+        <select id="orderStatusFilter" onchange="loadMyOrders(1)" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
+          <option value="all">All</option>
+          <option value="active">Active</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+      <div id="ordersList" class="space-y-4"></div>
+      <div id="ordersPager" class="flex items-center justify-center gap-3 mt-6"></div>
+    </div>
+  </section>
+
+  <!-- About & Testimonials -->
+  <section id="about" class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-3xl mx-auto mb-12">
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3">Why Customers Trust Ress - Debb Enterprise</h2>
+      <p class="text-slate-600">We combine dependable supply chains with modern digital convenience so you never have to worry about your orders.</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <div class="text-amber-400 mb-2"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+        <p class="text-slate-700 text-sm italic mb-4">"Ordering wholesale supplies from Ress - Debb Enterprise was super smooth. I accidentally ordered the wrong quantity, cancelled it in one click, and re-ordered immediately!"</p>
+        <p class="font-bold text-sm text-slate-900">— Chinedu O., Business Owner</p>
+      </div>
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <div class="text-amber-400 mb-2"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+        <p class="text-slate-700 text-sm italic mb-4">"Fast delivery and transparent pricing. Having an Order ID right after checkout makes tracking our office deliveries effortless."</p>
+        <p class="font-bold text-sm text-slate-900">— Amina B., Operations Lead</p>
+      </div>
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <div class="text-amber-400 mb-2"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+        <p class="text-slate-700 text-sm italic mb-4">"Customer support is top-notch and the product quality matches the description every single time. Highly recommended!"</p>
+        <p class="font-bold text-sm text-slate-900">— Tunde A., Retail Partner</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="py-12 bg-white border-t border-slate-200">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-2xl font-extrabold text-slate-900 text-center mb-8">Frequently Asked Questions</h2>
+      <div class="space-y-4">
+        <div class="p-4 rounded-lg bg-slate-50 border border-slate-200">
+          <h4 class="font-bold text-slate-900">How do I cancel an order?</h4>
+          <p class="text-sm text-slate-600 mt-1">Find your order in the <strong>Manage, Track & Cancel Orders</strong> section and click <strong>Cancel Order</strong>. Orders that are Pending or Processing are cancelled immediately and the items return to stock. Orders already Shipped or Delivered cannot be cancelled.</p>
+        </div>
+        <div class="p-4 rounded-lg bg-slate-50 border border-slate-200">
+          <h4 class="font-bold text-slate-900">Do I need an account to order?</h4>
+          <p class="text-sm text-slate-600 mt-1">No. You can check out as a guest. Create an account to see your full order history in one place.</p>
+        </div>
+        <div class="p-4 rounded-lg bg-slate-50 border border-slate-200">
+          <h4 class="font-bold text-slate-900">Can I place bulk or custom wholesale orders?</h4>
+          <p class="text-sm text-slate-600 mt-1">Yes. Use the contact form below or reach our sales desk on WhatsApp for custom quotes on high-volume orders.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact" class="py-16 bg-slate-900 text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-10">
+      <div>
+        <h2 class="text-2xl sm:text-3xl font-extrabold mb-4">Get in Touch with Ress - Debb Enterprise</h2>
+        <p class="text-slate-300 text-sm sm:text-base mb-6">Questions about an order, partnership or bulk pricing? Send us a message and our team will respond promptly.</p>
+        <div class="space-y-3 text-sm text-slate-300">
+          <p><i class="fa-solid fa-location-dot text-amber-400 w-6"></i> Lagos, Nigeria (Nationwide Delivery)</p>
+          <p><i class="fa-solid fa-phone text-amber-400 w-6"></i> 07089516232 &nbsp;/&nbsp; 08171230887</p>
+          <p><i class="fa-solid fa-envelope text-amber-400 w-6"></i> <a href="mailto:ressdebbenterprise@gmail.com" class="hover:text-white">ressdebbenterprise@gmail.com</a></p>
+          <p><i class="fa-solid fa-clock text-amber-400 w-6"></i> Mon – Sat: 8:00 AM – 6:00 PM</p>
+        </div>
+        <div class="flex flex-wrap gap-3 mt-6">
+          <a id="whatsappLink" href="#" target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold px-5 py-2.5 rounded-lg transition">
+            <i class="fa-brands fa-whatsapp"></i> WhatsApp 0708 951 6232
+          </a>
+          <a id="whatsappLink2" href="#" target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold px-5 py-2.5 rounded-lg transition">
+            <i class="fa-brands fa-whatsapp"></i> WhatsApp 0817 123 0887
+          </a>
+        </div>
+      </div>
+      <form onsubmit="handleContactSubmit(event)" class="bg-slate-800 p-6 rounded-xl border border-slate-700 space-y-4">
+        <h3 class="font-bold text-lg">Send Us an Inquiry</h3>
+        <input id="contactName" required type="text" placeholder="Your Name" class="w-full px-4 py-2.5 rounded-lg bg-slate-900 border border-slate-700 text-sm text-white" />
+        <input id="contactReach" required type="text" placeholder="Your Email or Phone" class="w-full px-4 py-2.5 rounded-lg bg-slate-900 border border-slate-700 text-sm text-white" />
+        <textarea id="contactMsg" required rows="3" placeholder="How can Ress - Debb Enterprise help you today?" class="w-full px-4 py-2.5 rounded-lg bg-slate-900 border border-slate-700 text-sm text-white"></textarea>
+        <button type="submit" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-900 font-bold py-2.5 rounded-lg transition">Send via WhatsApp</button>
+        <p class="text-xs text-slate-400">Your message opens in WhatsApp; it is not stored on this site.</p>
+      </form>
+    </div>
+  </section>
+
+  <footer class="bg-slate-950 text-slate-400 text-xs text-center py-6 border-t border-slate-800">
+    © <span id="year"></span> Ress - Debb Enterprise. All rights reserved.
+  </footer>
+
+  <!-- Cart & Checkout drawer -->
+  <div id="cartDrawer" class="fixed inset-0 bg-black/50 z-50 hidden flex justify-end">
+    <div class="bg-white w-full max-w-md h-full flex flex-col shadow-2xl">
+      <div class="p-5 border-b border-slate-200 flex items-center justify-between">
+        <h3 class="font-extrabold text-lg text-slate-900"><i class="fa-solid fa-cart-shopping text-blue-800 mr-2"></i>Your Order Cart</h3>
+        <button onclick="toggleCart(false)" class="text-slate-400 hover:text-slate-700 text-xl" aria-label="Close cart">&times;</button>
+      </div>
+      <div class="p-5 overflow-y-auto flex-1 space-y-6">
+        <div id="cartItemsList" class="space-y-3"></div>
+        <div class="flex justify-between font-bold text-slate-900 border-t border-slate-200 pt-4">
+          <span>Total</span><span id="cartTotal">₦0</span>
+        </div>
+        <form id="checkoutForm" onsubmit="placeOrder(event)" class="space-y-3 border-t border-slate-200 pt-4">
+          <h4 class="font-bold text-sm text-slate-800">Customer & Delivery Details</h4>
+          <input id="custName" required type="text" placeholder="Full Name *" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+          <input id="custPhone" required type="tel" placeholder="Phone Number * (e.g. 08012345678)" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+          <input id="custEmail" type="email" placeholder="Email (optional)" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+          <input id="custAddress" required type="text" placeholder="Delivery Address *" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+          <textarea id="custNotes" rows="2" placeholder="Order Notes (Optional)" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"></textarea>
+          <fieldset class="space-y-2 text-sm">
+            <legend class="font-bold text-sm text-slate-800 mb-1">Payment</legend>
+            <label class="flex items-start gap-2"><input type="radio" name="payMethod" value="cod" checked class="mt-1" /> <span><strong>Pay on delivery</strong> <span class="text-slate-500">(cash or transfer to the delivery agent)</span></span></label>
+            <label class="flex items-start gap-2"><input type="radio" name="payMethod" value="transfer" class="mt-1" /> <span><strong>Bank transfer</strong> <span class="text-slate-500">(account details shown after you order)</span></span></label>
+          </fieldset>
+          <button id="placeOrderBtn" type="submit" class="w-full bg-blue-900 hover:bg-blue-800 disabled:opacity-40 text-white font-bold py-3 rounded-lg transition">Place Order</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Auth modal -->
+  <div id="authModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 relative">
+      <button onclick="closeModal('authModal')" class="absolute top-3 right-4 text-slate-400 hover:text-slate-700 text-xl" aria-label="Close">&times;</button>
+      <div class="flex gap-2 mb-5">
+        <button id="tabLogin" onclick="setAuthMode('login')" class="flex-1 py-2 rounded-lg text-sm font-semibold">Log in</button>
+        <button id="tabSignup" onclick="setAuthMode('signup')" class="flex-1 py-2 rounded-lg text-sm font-semibold">Sign up</button>
+      </div>
+      <form id="authForm" onsubmit="submitAuth(event)" class="space-y-3">
+        <input id="authName" type="text" placeholder="Full Name" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+        <input id="authPhone" type="tel" placeholder="Phone (e.g. 08012345678)" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+        <input id="authEmail" type="email" required placeholder="Email" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+        <input id="authPassword" type="password" required minlength="8" placeholder="Password (min 8 characters)" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+        <button class="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-2.5 rounded-lg">Continue</button>
+        <button type="button" onclick="forgotPassword()" class="w-full text-sm text-blue-800 hover:underline">Forgot password?</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Receipt modal -->
+  <div id="receiptModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 text-center relative">
+      <button onclick="closeModal('receiptModal')" class="absolute top-3 right-4 text-slate-400 hover:text-slate-700 text-xl" aria-label="Close">&times;</button>
+      <div class="w-14 h-14 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl mb-4"><i class="fa-solid fa-check"></i></div>
+      <h3 class="font-extrabold text-lg text-slate-900">Order placed!</h3>
+      <p class="text-sm text-slate-600 mt-1">Keep this Order ID to track or cancel your order.</p>
+      <p id="receiptId" class="font-mono text-2xl font-bold text-blue-900 my-4"></p>
+      <pre id="receiptBank" class="hidden text-left text-xs bg-slate-100 rounded-lg p-3 mb-4 whitespace-pre-wrap"></pre>
+      <button onclick="closeModal('receiptModal')" class="w-full bg-amber-400 hover:bg-amber-300 font-bold py-2.5 rounded-lg">Done</button>
+    </div>
+  </div>
+
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm px-4 py-3 rounded-lg shadow-lg hidden z-[60]"></div>
+
+<script>
+  // Nigerian numbers in international format (country code 234, leading 0 dropped).
+  const WHATSAPP_NUMBERS = ['2347089516232', '2348171230887'];
+  const WHATSAPP_NUMBER = WHATSAPP_NUMBERS[0]; // Used by the contact form.
+  const CATEGORY_LABELS = { Electronics: 'Electronics & Office', Essentials: 'Home & Daily Essentials', Packaging: 'Wholesale & Packaging' };
+  const PAGE_SIZE = 5;
+
+  const state = {
+    products: [],
+    cart: JSON.parse(localStorage.getItem('rde_cart') || '[]'),
+    token: localStorage.getItem('rde_token'),
+    user: null,
+    authMode: 'login',
+    myPage: 1,
+  };
+
+  const money = (n) => new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(n);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const fmtDate = (iso) => new Date(iso).toLocaleString('en-NG', { dateStyle: 'medium', timeStyle: 'short' });
+  const STATUS_CLASS = {
+    Pending: 'bg-amber-100 text-amber-800',
+    Processing: 'bg-blue-100 text-blue-800',
+    Shipped: 'bg-indigo-100 text-indigo-800',
+    Delivered: 'bg-emerald-100 text-emerald-700',
+    Cancelled: 'bg-red-100 text-red-700',
+  };
+
+  async function api(path, { method = 'GET', body, headers = {} } = {}) {
+    const h = { ...headers };
+    if (body !== undefined) h['Content-Type'] = 'application/json';
+    if (state.token) h.Authorization = `Bearer ${state.token}`;
+    let res;
+    try {
+      res = await fetch(path, { method, headers: h, body: body === undefined ? undefined : JSON.stringify(body) });
+    } catch {
+      throw Object.assign(new Error('Network problem. Check your connection and try again.'), { network: true });
+    }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const detail = Array.isArray(data.details) && data.details[0] ? ` ${data.details[0].message}` : '';
+      throw Object.assign(new Error((data.error || `Request failed (${res.status})`) + (detail && !data.error?.endsWith(detail) ? detail : '')), { status: res.status, details: data.details });
+    }
+    return data;
+  }
+
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.remove('hidden');
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => t.classList.add('hidden'), 3500);
+  }
+
+  function openModal(id) { const el = document.getElementById(id); el.classList.remove('hidden'); el.classList.add('flex'); }
+  function closeModal(id) { const el = document.getElementById(id); el.classList.add('hidden'); el.classList.remove('flex'); }
+
+  // ---------- Catalogue ----------
+  async function loadProducts() {
+    try {
+      const data = await api('/api/products');
+      state.products = data.products;
+    } catch (e) {
+      toast(e.message);
+    }
+    renderProducts();
+  }
+
+  function renderProducts() {
+    const q = document.getElementById('searchInput').value.trim().toLowerCase();
+    const cat = document.getElementById('categoryFilter').value;
+    const list = state.products.filter((p) =>
+      (cat === 'All' || p.category === cat) && (!q || `${p.name} ${p.description}`.toLowerCase().includes(q)));
+    const grid = document.getElementById('productGrid');
+    if (!list.length) {
+      grid.innerHTML = '<p class="text-slate-500 col-span-full">No products match your search.</p>';
+      return;
+    }
+    grid.innerHTML = list.map((p) => {
+      const [label, cls] = p.stock === 0 ? ['Out of stock', 'bg-red-100 text-red-700']
+        : p.stock <= 5 ? [`Only ${p.stock} left`, 'bg-amber-100 text-amber-800']
+        : ['In stock', 'bg-emerald-100 text-emerald-700'];
+      const inCart = cartQty(p.id);
+      const maxed = inCart >= p.stock;
+      const btn = p.stock === 0 ? 'Unavailable' : maxed ? 'Max in cart' : inCart ? 'Add more' : 'Add to cart';
+      return `
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col">
+          <div class="flex justify-between items-start mb-2">
+            <span class="text-xs font-semibold text-blue-800 uppercase">${esc(CATEGORY_LABELS[p.category])}</span>
+            <span class="text-xs px-2 py-1 rounded-full font-semibold ${cls}">${label}</span>
+          </div>
+          <h3 class="font-bold text-slate-900">${esc(p.name)}</h3>
+          <p class="text-sm text-slate-600 flex-1 mt-1">${esc(p.description)}</p>
+          <div class="flex justify-between items-center mt-4">
+            <span class="font-extrabold text-lg text-slate-900">${money(p.price)}</span>
+            <button ${p.stock === 0 || maxed ? 'disabled' : ''} onclick="addToCart('${esc(p.id)}')"
+              class="bg-blue-900 hover:bg-blue-800 disabled:bg-slate-300 disabled:text-slate-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">${btn}</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ---------- Cart ----------
+  const cartQty = (id) => state.cart.find((l) => l.productId === id)?.quantity || 0;
+
+  function saveCart() {
+    localStorage.setItem('rde_cart', JSON.stringify(state.cart));
+    // The idempotency key belongs to one specific basket; a changed basket needs a fresh key.
+    sessionStorage.removeItem('rde_checkout_key');
+    renderCart();
+    renderProducts();
+  }
+
+  function addToCart(id) {
+    const p = state.products.find((x) => x.id === id);
+    if (!p || p.stock === 0) return;
+    if (cartQty(id) >= p.stock) return toast(`Only ${p.stock} of ${p.name} available`);
+    const line = state.cart.find((l) => l.productId === id);
+    if (line) line.quantity += 1;
+    else state.cart.push({ productId: id, quantity: 1 });
+    saveCart();
+    toast(`${p.name} added to cart`);
+  }
+
+  function changeQty(id, delta) {
+    const p = state.products.find((x) => x.id === id);
+    const line = state.cart.find((l) => l.productId === id);
+    if (!line) return;
+    line.quantity += delta;
+    if (line.quantity <= 0) state.cart = state.cart.filter((l) => l !== line);
+    else if (p && line.quantity > p.stock) { line.quantity = p.stock; toast(`Only ${p.stock} available`); }
+    saveCart();
+  }
+
+  function cartTotal() {
+    return state.cart.reduce((sum, l) => sum + (state.products.find((p) => p.id === l.productId)?.price || 0) * l.quantity, 0);
+  }
+
+  function renderCart() {
+    const count = state.cart.reduce((s, l) => s + l.quantity, 0);
+    document.getElementById('cartCount').textContent = count;
+    const list = document.getElementById('cartItemsList');
+    if (!state.cart.length) {
+      list.innerHTML = '<p class="text-sm text-slate-500">Your cart is empty. Add a product to get started.</p>';
+    } else {
+      list.innerHTML = state.cart.map((l) => {
+        const p = state.products.find((x) => x.id === l.productId);
+        if (!p) return '';
+        return `
+          <div class="flex items-center justify-between gap-3 border border-slate-200 rounded-lg p-3">
+            <div class="min-w-0">
+              <p class="font-semibold text-sm text-slate-900 truncate">${esc(p.name)}</p>
+              <p class="text-xs text-slate-500">${money(p.price)} each</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="changeQty('${esc(p.id)}', -1)" class="w-7 h-7 rounded bg-slate-100 hover:bg-slate-200" aria-label="Decrease">−</button>
+              <span class="w-6 text-center text-sm font-semibold">${l.quantity}</span>
+              <button onclick="changeQty('${esc(p.id)}', 1)" class="w-7 h-7 rounded bg-slate-100 hover:bg-slate-200" aria-label="Increase">+</button>
+              <button onclick="changeQty('${esc(p.id)}', -999)" class="ml-1 text-red-500 hover:text-red-700 text-xs" aria-label="Remove">Remove</button>
+            </div>
+          </div>`;
+      }).join('');
+    }
+    document.getElementById('cartTotal').textContent = money(cartTotal());
+    document.getElementById('placeOrderBtn').disabled = !state.cart.length;
+  }
+
+  function toggleCart(open) {
+    const drawer = document.getElementById('cartDrawer');
+    drawer.classList.toggle('hidden', !open);
+    if (open) renderCart();
+  }
+
+  function checkoutKey() {
+    let key = sessionStorage.getItem('rde_checkout_key');
+    if (!key) {
+      key = crypto.randomUUID();
+      sessionStorage.setItem('rde_checkout_key', key);
+    }
+    return key;
+  }
+
+  async function placeOrder(event) {
+    event.preventDefault();
+    if (!state.cart.length) return toast('Your cart is empty');
+    const btn = document.getElementById('placeOrderBtn');
+    btn.disabled = true;
+    btn.textContent = 'Placing order...';
+    try {
+      const data = await api('/api/orders', {
+        method: 'POST',
+        headers: { 'Idempotency-Key': checkoutKey() },
+        body: {
+          customer: {
+            name: document.getElementById('custName').value,
+            phone: document.getElementById('custPhone').value,
+            email: document.getElementById('custEmail').value,
+            address: document.getElementById('custAddress').value,
+            notes: document.getElementById('custNotes').value,
+          },
+          items: state.cart.map((l) => ({ productId: l.productId, quantity: l.quantity })),
+          paymentMethod: document.querySelector('input[name="payMethod"]:checked').value,
+        },
+      });
+      sessionStorage.removeItem('rde_checkout_key');
+      state.cart = [];
+      localStorage.removeItem('rde_cart');
+      document.getElementById('checkoutForm').reset();
+      toggleCart(false);
+      saveCart();
+      document.getElementById('receiptId').textContent = data.order.id;
+      const bank = document.getElementById('receiptBank');
+      bank.textContent = data.bankDetails ? `Transfer ${money(data.order.total)} to:\n${data.bankDetails}\n\nUse ${data.order.id} as the payment reference.` : '';
+      bank.classList.toggle('hidden', !data.bankDetails);
+      openModal('receiptModal');
+      document.getElementById('orderSearchInput').value = data.order.id;
+      await loadProducts();
+      if (state.token) loadMyOrders(1);
+      lookupById(data.order.id);
+    } catch (e) {
+      if (e.status === 409 && e.details) {
+        toast(e.details.map((d) => d.message).join('. '));
+        await loadProducts();
+      } else {
+        toast(e.message);
+      }
+    } finally {
+      btn.textContent = 'Place Order';
+      btn.disabled = !state.cart.length;
+    }
+  }
+
+  // ---------- Orders ----------
+  function orderCard(o) {
+    const items = o.items.map((i) => `<li class="flex justify-between text-sm"><span>${esc(i.name)} × ${i.quantity}</span><span>${money(i.lineTotal)}</span></li>`).join('');
+    const cancel = o.cancellable
+      ? `<button onclick="cancelOrder('${esc(o.id)}')" class="bg-red-600 hover:bg-red-500 text-white text-sm font-semibold px-4 py-2 rounded-lg">Cancel Order</button>`
+      : `<span class="text-xs text-slate-500">${o.status === 'Cancelled' ? 'Cancelled' : 'Can no longer be cancelled once shipped'}</span>`;
+    return `
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+        <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
+          <span class="font-mono font-bold text-slate-900">${esc(o.id)}</span>
+          <span class="text-xs font-semibold px-3 py-1 rounded-full ${STATUS_CLASS[o.status] || ''}">${esc(o.status)}</span>
+        </div>
+        <ul class="space-y-1 mb-3">${items}</ul>
+        <p class="text-xs text-slate-500 mb-2">Payment: ${esc(o.paymentLabel)}</p>
+        <div class="flex justify-between font-bold text-slate-900 border-t pt-3 mb-3"><span>Total</span><span>${money(o.total)}</span></div>
+        <div class="flex flex-wrap justify-between items-center gap-2 text-xs text-slate-500">
+          <span>Placed ${fmtDate(o.createdAt)}</span>
+          ${cancel}
+        </div>
+      </div>`;
+  }
+
+  async function lookupOrder(event) {
+    event.preventDefault();
+    lookupById(document.getElementById('orderSearchInput').value.trim().toUpperCase());
+  }
+
+  async function lookupById(id) {
+    const box = document.getElementById('lookupResult');
+    if (!/^RDE-\d{6}$/.test(id)) {
+      box.innerHTML = '<p class="text-sm text-red-600">Enter an Order ID in the format RDE-123456.</p>';
+      return;
+    }
+    try {
+      const data = await api(`/api/orders/${id}`);
+      box.innerHTML = `<h3 class="font-bold text-slate-900 mb-3">Order found</h3><div class="max-w-xl">${orderCard(data.order)}</div>`;
+    } catch (e) {
+      box.innerHTML = `<p class="text-sm text-red-600">${esc(e.message)}</p>`;
+    }
+  }
+
+  async function loadMyOrders(page = state.myPage) {
+    state.myPage = page;
+    const list = document.getElementById('ordersList');
+    const pager = document.getElementById('ordersPager');
+    if (!state.token) {
+      list.innerHTML = '<p class="text-sm text-slate-600">Log in to see your full order history. Guests can still look up an order by ID above.</p>';
+      pager.innerHTML = '';
+      return;
+    }
+    const status = document.getElementById('orderStatusFilter').value;
+    try {
+      const data = await api(`/api/orders?status=${status}&page=${page}&pageSize=${PAGE_SIZE}`);
+      list.innerHTML = data.items.length
+        ? data.items.map(orderCard).join('')
+        : '<p class="text-sm text-slate-600">No orders in this view yet.</p>';
+      pager.innerHTML = data.totalPages > 1 ? `
+        <button ${page <= 1 ? 'disabled' : ''} onclick="loadMyOrders(${page - 1})" class="px-3 py-1.5 rounded border border-slate-300 bg-white disabled:opacity-40 text-sm">Previous</button>
+        <span class="text-sm text-slate-600">Page ${data.page} of ${data.totalPages}</span>
+        <button ${page >= data.totalPages ? 'disabled' : ''} onclick="loadMyOrders(${page + 1})" class="px-3 py-1.5 rounded border border-slate-300 bg-white disabled:opacity-40 text-sm">Next</button>` : '';
+    } catch (e) {
+      if (e.status === 401) logout(false);
+      list.innerHTML = `<p class="text-sm text-red-600">${esc(e.message)}</p>`;
+    }
+  }
+
+  async function cancelOrder(id) {
+    if (!confirm(`Cancel order ${id}? Its items will be returned to stock.`)) return;
+    const send = (body) => api(`/api/orders/${id}/cancel`, { method: 'POST', body });
+    try {
+      await send({});
+    } catch (e) {
+      if (e.status === 403) {
+        // Guest order: confirm ownership with the phone number used at checkout.
+        const phone = prompt('This is a guest order. Enter the phone number used at checkout:');
+        if (!phone) return;
+        try {
+          await send({ phone });
+        } catch (err) {
+          return toast(err.message);
+        }
+      } else {
+        return toast(e.message);
+      }
+    }
+    toast(`Order ${id} cancelled and stock restored`);
+    await loadProducts();
+    lookupById(id);
+    if (state.token) loadMyOrders(state.myPage);
+  }
+
+  // ---------- Accounts ----------
+  function setAuthMode(mode) {
+    state.authMode = mode;
+    const signup = mode === 'signup';
+    document.getElementById('authName').classList.toggle('hidden', !signup);
+    document.getElementById('authPhone').classList.toggle('hidden', !signup);
+    document.getElementById('authName').required = signup;
+    document.getElementById('authPhone').required = signup;
+    document.getElementById('tabLogin').className = `flex-1 py-2 rounded-lg text-sm font-semibold ${signup ? 'bg-slate-100 text-slate-600' : 'bg-blue-900 text-white'}`;
+    document.getElementById('tabSignup').className = `flex-1 py-2 rounded-lg text-sm font-semibold ${signup ? 'bg-blue-900 text-white' : 'bg-slate-100 text-slate-600'}`;
+  }
+
+  function openAuth() {
+    if (state.user) return logout(true);
+    setAuthMode('login');
+    openModal('authModal');
+  }
+
+  async function submitAuth(event) {
+    event.preventDefault();
+    const signup = state.authMode === 'signup';
+    const body = {
+      email: document.getElementById('authEmail').value,
+      password: document.getElementById('authPassword').value,
+    };
+    if (signup) {
+      body.name = document.getElementById('authName').value;
+      body.phone = document.getElementById('authPhone').value;
+    }
+    try {
+      const data = await api(signup ? '/api/auth/signup' : '/api/auth/login', { method: 'POST', body });
+      if (signup) {
+        // Accounts must verify their email before they can log in.
+        closeModal('authModal');
+        document.getElementById('authForm').reset();
+        toast(data.message);
+        return;
+      }
+      state.token = data.token;
+      state.user = data.user;
+      localStorage.setItem('rde_token', data.token);
+      closeModal('authModal');
+      document.getElementById('authForm').reset();
+      renderAuth();
+      loadMyOrders(1);
+      toast(`Welcome, ${data.user.name.split(' ')[0]}!`);
+    } catch (e) {
+      if (e.status === 403 && confirm(`${e.message}\n\nSend a new verification email now?`)) {
+        await api('/api/auth/resend-verification', { method: 'POST', body: { email: body.email } }).catch(() => {});
+        toast('If that account needs verification, a new link is on its way.');
+      } else {
+        toast(e.message);
+      }
+    }
+  }
+
+  async function forgotPassword() {
+    const email = document.getElementById('authEmail').value.trim();
+    if (!email) return toast('Enter your email address above first');
+    try {
+      const data = await api('/api/auth/forgot-password', { method: 'POST', body: { email } });
+      toast(data.message);
+    } catch (e) {
+      toast(e.message);
+    }
+  }
+
+  // Handles links from verification and reset emails: ?verify=TOKEN and ?reset=TOKEN.
+  async function handleEmailLinks() {
+    const params = new URLSearchParams(location.search);
+    const verify = params.get('verify');
+    const reset = params.get('reset');
+    if (!verify && !reset) return;
+    history.replaceState(null, '', location.pathname);
+    try {
+      if (verify) {
+        const data = await api('/api/auth/verify-email', { method: 'POST', body: { token: verify } });
+        toast(data.message);
+        setAuthMode('login');
+        openModal('authModal');
+      } else {
+        const password = prompt('Choose a new password (at least 8 characters):');
+        if (!password) return;
+        const data = await api('/api/auth/reset-password', { method: 'POST', body: { token: reset, password } });
+        toast(data.message);
+        setAuthMode('login');
+        openModal('authModal');
+      }
+    } catch (e) {
+      toast(e.message);
+    }
+  }
+
+  function renderAuth() {
+    document.getElementById('authLabel').textContent = state.user ? `${state.user.name.split(' ')[0]} (log out)` : 'Log in';
+    if (state.user) {
+      document.getElementById('custName').value ||= state.user.name;
+      document.getElementById('custPhone').value ||= state.user.phone;
+    }
+  }
+
+  async function logout(notify) {
+    try { await api('/api/auth/logout', { method: 'POST' }); } catch { /* ignore */ }
+    state.token = null;
+    state.user = null;
+    localStorage.removeItem('rde_token');
+    renderAuth();
+    loadMyOrders(1);
+    if (notify) toast('You have been logged out');
+  }
+
+  async function restoreSession() {
+    if (!state.token) return;
+    try {
+      const data = await api('/api/me');
+      state.user = data.user;
+    } catch {
+      state.token = null;
+      localStorage.removeItem('rde_token');
+    }
+    renderAuth();
+  }
+
+  // ---------- Contact ----------
+  function handleContactSubmit(event) {
+    event.preventDefault();
+    const text = `Hello Ress - Debb Enterprise, I'm ${document.getElementById('contactName').value}. ` +
+      `Contact: ${document.getElementById('contactReach').value}. ${document.getElementById('contactMsg').value}`;
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+  }
+
+  // ---------- Install as an app (PWA) ----------
+  let deferredInstall = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstall = e;
+    document.getElementById('installBtn').classList.remove('hidden');
+  });
+  window.addEventListener('appinstalled', () => {
+    deferredInstall = null;
+    document.getElementById('installBtn').classList.add('hidden');
+    toast('Ress - Debb is installed on your device');
+  });
+  async function installApp() {
+    if (!deferredInstall) return toast('To install: use your browser menu and choose "Add to Home Screen" or "Install app"');
+    deferredInstall.prompt();
+    await deferredInstall.userChoice;
+    deferredInstall = null;
+    document.getElementById('installBtn').classList.add('hidden');
+  }
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch((err) => console.error('Service worker failed:', err));
+  }
+
+  // ---------- Boot ----------
+  document.getElementById('year').textContent = new Date().getFullYear();
+  document.getElementById('whatsappLink').href = `https://wa.me/${WHATSAPP_NUMBERS[0]}`;
+  document.getElementById('whatsappLink2').href = `https://wa.me/${WHATSAPP_NUMBERS[1]}`;
+  document.getElementById('cartDrawer').addEventListener('click', (e) => { if (e.target.id === 'cartDrawer') toggleCart(false); });
+  setAuthMode('login');
+  renderCart();
+  loadProducts();
+  restoreSession().then(() => loadMyOrders(1));
+  handleEmailLinks();
+</script>
+</body>
+</html>
