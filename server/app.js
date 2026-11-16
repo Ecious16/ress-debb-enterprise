@@ -366,6 +366,8 @@ function createApp(options = {}) {
   const trustProxy = Boolean(options.trustProxy);
   const adminToken = options.adminToken || crypto.randomBytes(24).toString('hex');
   const bankDetails = options.bankDetails || '';
+  // When false, accounts are verified at sign-up and password reset is unavailable.
+  const emailEnabled = options.emailEnabled ?? true;
   const adminTokenHash = crypto.createHash('sha256').update(adminToken).digest();
 
   function enforce(bucket, ip, limit) {
@@ -422,18 +424,21 @@ function createApp(options = {}) {
       if (errors.length) throw new HttpError(400, 'Please correct the highlighted fields', errors);
       const { salt, hash } = hashPassword(value.password);
       const userId = `U-${crypto.randomUUID()}`;
-      let verifyToken;
+      let verifyToken = null;
       try {
         verifyToken = await withTx(pool, async (c) => {
           await c.query(
-            'INSERT INTO users (id, name, email, phone, salt, hash) VALUES ($1, $2, $3, $4, $5, $6)',
-            [userId, value.name, value.email, value.phone, salt, hash],
+            'INSERT INTO users (id, name, email, phone, salt, hash, email_verified_at) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+            [userId, value.name, value.email, value.phone, salt, hash, emailEnabled ? null : new Date()],
           );
-          return issueAuthToken(c, userId, 'verify_email', VERIFY_TTL_MS);
+          return emailEnabled ? issueAuthToken(c, userId, 'verify_email', VERIFY_TTL_MS) : null;
         });
       } catch (err) {
         if (err.code === '23505') throw new HttpError(409, 'An account with this email already exists');
         throw err;
+      }
+      if (!emailEnabled) {
+        return send(res, 201, { message: 'Account created. You can log in now.' });
       }
       await deliver(
         mailer,
@@ -486,7 +491,7 @@ function createApp(options = {}) {
       enforce('auth', ip, limits.auth);
       const body = await readJson(req);
       const email = normalizeEmail(body.email);
-      if (email) {
+      if (email && emailEnabled) {
         const user = (await pool.query(
           'SELECT id, name FROM users WHERE email = $1 AND email_verified_at IS NULL',
           [email],
@@ -503,6 +508,9 @@ function createApp(options = {}) {
 
     if (method === 'POST' && p === '/api/auth/forgot-password') {
       enforce('auth', ip, limits.auth);
+      if (!emailEnabled) {
+        throw new HttpError(503, 'Password reset by email is not available yet. Please contact us on WhatsApp to reset your password.');
+      }
       const body = await readJson(req);
       const email = normalizeEmail(body.email);
       if (email) {
