@@ -23,7 +23,6 @@ function loadConfig(env = process.env) {
 
   const mailApiKey = env.MAIL_API_KEY || '';
   const mailFrom = env.MAIL_FROM || '';
-  if (isProduction && !mailApiKey) problems.push('MAIL_API_KEY is required in production (verification and reset emails)');
   if (mailApiKey && !mailFrom) problems.push('MAIL_FROM is required when MAIL_API_KEY is set');
 
   return {
@@ -38,6 +37,8 @@ function loadConfig(env = process.env) {
       trustProxy: env.TRUST_PROXY === '1',
       mailApiKey,
       mailFrom,
+      // Email (verification and password reset) is optional. Without a key in production it is switched off.
+      emailEnabled: Boolean(mailApiKey) || !isProduction,
       bankDetails: env.BANK_TRANSFER_DETAILS || '',
     },
   };
