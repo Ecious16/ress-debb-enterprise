@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin | Ress - Debb Enterprise</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen">
+  <header class="bg-slate-900 text-white px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="font-extrabold text-lg">Ress - Debb Admin</h1>
+      <p class="text-xs text-slate-400">Order status management</p>
+    </div>
+    <div id="authArea" class="flex items-center gap-2">
+      <input id="adminToken" type="password" placeholder="Admin token" class="px-3 py-2 rounded-lg text-sm text-slate-900 w-64" />
+      <button onclick="connect()" class="bg-amber-400 hover:bg-amber-300 text-slate-900 font-semibold px-4 py-2 rounded-lg text-sm">Connect</button>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto p-6">
+    <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-8">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <h2 class="font-bold text-lg">Products</h2>
+        <button onclick="toggleAddProduct()" class="text-sm px-3 py-2 rounded-lg bg-blue-900 hover:bg-blue-800 text-white font-semibold">+ Add product</button>
+      </div>
+      <form id="addProductForm" onsubmit="createProduct(event)" class="hidden grid md:grid-cols-6 gap-2 mb-4 p-4 bg-slate-50 rounded-lg">
+        <input id="newName" required minlength="2" maxlength="80" placeholder="Name" class="md:col-span-2 border rounded px-2 py-1.5 text-sm" />
+        <select id="newCategory" class="border rounded px-2 py-1.5 text-sm bg-white">
+          <option value="Electronics">Electronics</option>
+          <option value="Essentials">Essentials</option>
+          <option value="Packaging">Packaging</option>
+        </select>
+        <input id="newPrice" required type="number" min="0" step="1" placeholder="Price ₦" class="border rounded px-2 py-1.5 text-sm" />
+        <input id="newStock" required type="number" min="0" step="1" placeholder="Stock" class="border rounded px-2 py-1.5 text-sm" />
+        <button class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm rounded px-3 py-1.5">Save new</button>
+        <input id="newDesc" maxlength="300" placeholder="Description (optional)" class="md:col-span-6 border rounded px-2 py-1.5 text-sm" />
+      </form>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left text-slate-500 border-b">
+              <th class="py-2 pr-2">ID</th><th class="pr-2">Name</th><th class="pr-2">Category</th>
+              <th class="pr-2">Price (₦)</th><th class="pr-2">Stock</th><th class="pr-2">Description</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="productRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <h2 class="font-bold text-lg mb-4">Orders</h2>
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <div class="flex items-center gap-2">
+        <label for="statusFilter" class="text-sm font-semibold">Show</label>
+        <select id="statusFilter" onchange="load(1)" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
+          <option value="all">All orders</option>
+          <option value="Pending">Pending</option>
+          <option value="Processing">Processing</option>
+          <option value="Shipped">Shipped</option>
+          <option value="Delivered">Delivered</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+      </div>
+      <button onclick="load(state.page)" class="text-sm px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50">Refresh</button>
+    </div>
+
+    <div id="message" class="text-sm mb-4 hidden"></div>
+    <div id="orders" class="space-y-4"></div>
+    <div id="pager" class="flex items-center justify-center gap-3 mt-6"></div>
+  </main>
+
+<script>
+  const NEXT = {
+    Pending: ['Processing', 'Cancelled'],
+    Processing: ['Shipped', 'Cancelled'],
+    Shipped: ['Delivered'],
+    Delivered: [],
+    Cancelled: [],
+  };
+  const STATUS_CLASS = {
+    Pending: 'bg-amber-100 text-amber-800',
+    Processing: 'bg-blue-100 text-blue-800',
+    Shipped: 'bg-indigo-100 text-indigo-800',
+    Delivered: 'bg-emerald-100 text-emerald-700',
+    Cancelled: 'bg-red-100 text-red-700',
+  };
+  const PAGE_SIZE = 10;
+  const state = { token: sessionStorage.getItem('rde_admin_token'), page: 1 };
+  const money = (n) => new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(n);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  function showMessage(text, ok = false) {
+    const m = document.getElementById('message');
+    m.textContent = text;
+    m.className = `text-sm mb-4 ${ok ? 'text-emerald-700' : 'text-red-600'}`;
+  }
+
+  async function api(path, { method = 'GET', body } = {}) {
+    const headers = { Authorization: `Bearer ${state.token}` };
+    if (body !== undefined) headers['Content-Type'] = 'application/json';
+    const res = await fetch(path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+    return data;
+  }
+
+  function connect() {
+    state.token = document.getElementById('adminToken').value.trim();
+    if (!state.token) return showMessage('Enter the admin token');
+    sessionStorage.setItem('rde_admin_token', state.token);
+    load(1);
+    loadProducts();
+  }
+
+  async function load(page = state.page) {
+    state.page = page;
+    if (!state.token) return;
+    const status = document.getElementById('statusFilter').value;
+    try {
+      const data = await api(`/api/admin/orders?status=${status}&page=${page}&pageSize=${PAGE_SIZE}`);
+      document.getElementById('message').classList.add('hidden');
+      document.getElementById('orders').innerHTML = data.items.length ? data.items.map(card).join('')
+        : '<p class="text-sm text-slate-600">No orders found.</p>';
+      document.getElementById('pager').innerHTML = data.totalPages > 1 ? `
+        <button ${page <= 1 ? 'disabled' : ''} onclick="load(${page - 1})" class="px-3 py-1.5 rounded border bg-white disabled:opacity-40 text-sm">Previous</button>
+        <span class="text-sm">Page ${data.page} of ${data.totalPages} (${data.total} orders)</span>
+        <button ${page >= data.totalPages ? 'disabled' : ''} onclick="load(${page + 1})" class="px-3 py-1.5 rounded border bg-white disabled:opacity-40 text-sm">Next</button>` : '';
+    } catch (e) {
+      showMessage(e.message);
+    }
+  }
+
+  const PAY_LABEL = { pay_on_delivery: 'Pay on delivery', awaiting_transfer: 'Awaiting bank transfer', paid: 'Paid' };
+
+  async function markPaid(id) {
+    try {
+      await api(`/api/admin/orders/${id}/mark-paid`, { method: 'POST' });
+      showMessage(`${id} marked as paid`, true);
+      load(state.page);
+    } catch (e) {
+      showMessage(e.message);
+    }
+  }
+
+  function card(o) {
+    const paidBtn = o.paymentStatus !== 'paid' && o.status !== 'Cancelled'
+      ? `<button onclick="markPaid('${esc(o.id)}')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg">Mark paid</button>`
+      : '';
+    const actions = NEXT[o.status].map((s) => {
+      const cls = s === 'Cancelled' ? 'bg-red-600 hover:bg-red-500 text-white' : 'bg-blue-900 hover:bg-blue-800 text-white';
+      return `<button onclick="move('${esc(o.id)}','${s}')" class="${cls} text-xs font-semibold px-3 py-1.5 rounded-lg">Mark ${s}</button>`;
+    }).join('') || '<span class="text-xs text-slate-500">No further actions</span>';
+    const items = o.items.map((i) => `${esc(i.name)} × ${i.quantity}`).join(', ');
+    const history = o.statusHistory.map((h) => `${h.status} (${new Date(h.at).toLocaleString('en-NG')})`).join(' → ');
+    return `
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+        <div class="flex flex-wrap justify-between items-center gap-2">
+          <div>
+            <span class="font-mono font-bold">${esc(o.id)}</span>
+            <span class="ml-2 text-xs font-semibold px-2 py-1 rounded-full ${STATUS_CLASS[o.status]}">${o.status}</span>
+          </div>
+          <span class="font-bold">${money(o.total)}</span>
+        </div>
+        <p class="text-sm mt-2"><strong>${esc(o.customer.name)}</strong> · ${esc(o.customer.phone)}${o.customer.email ? ' · ' + esc(o.customer.email) : ''}</p>
+        <p class="text-sm text-slate-600">${esc(o.customer.address)}${o.customer.notes ? ' — Note: ' + esc(o.customer.notes) : ''}</p>
+        <p class="text-sm text-slate-600 mt-1">${items}</p>
+        <p class="text-xs text-slate-400 mt-2">${history}</p>
+        <p class="text-xs mt-2 ${o.paymentStatus === 'paid' ? 'text-emerald-700' : 'text-amber-700'}">Payment: ${PAY_LABEL[o.paymentStatus]} (${o.paymentMethod === 'transfer' ? 'bank transfer' : 'cash on delivery'})</p>
+        <div class="flex flex-wrap gap-2 mt-4">${paidBtn}${actions}</div>
+      </div>`;
+  }
+
+  async function move(id, status) {
+    if (status === 'Cancelled' && !confirm(`Cancel ${id}? Its items will be returned to stock.`)) return;
+    try {
+      await api(`/api/admin/orders/${id}/status`, { method: 'PATCH', body: { status } });
+      showMessage(`${id} moved to ${status}`, true);
+      load(state.page);
+    } catch (e) {
+      showMessage(e.message);
+    }
+  }
+
+  // ---------- Products ----------
+  const CATS = ['Electronics', 'Essentials', 'Packaging'];
+
+  function toggleAddProduct() {
+    document.getElementById('addProductForm').classList.toggle('hidden');
+  }
+
+  async function loadProducts() {
+    if (!state.token) return;
+    try {
+      const data = await api('/api/admin/products');
+      document.getElementById('productRows').innerHTML = data.products.map((p) => `
+        <tr class="border-b last:border-0" data-id="${esc(p.id)}">
+          <td class="py-2 pr-2 font-mono text-xs">${esc(p.id)}${p.archived ? ' <span class="ml-1 text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-sans">archived</span>' : ''}</td>
+          <td class="pr-2"><input data-f="name" value="${esc(p.name)}" class="border rounded px-2 py-1 w-full min-w-[12rem]" /></td>
+          <td class="pr-2"><select data-f="category" class="border rounded px-2 py-1 bg-white">${CATS.map((c) => `<option ${c === p.category ? 'selected' : ''}>${c}</option>`).join('')}</select></td>
+          <td class="pr-2"><input data-f="price" type="number" min="0" step="1" value="${p.price}" class="border rounded px-2 py-1 w-28" /></td>
+          <td class="pr-2"><input data-f="stock" type="number" min="0" step="1" value="${p.stock}" class="border rounded px-2 py-1 w-24 ${p.stock === 0 ? 'border-red-400' : ''}" /></td>
+          <td class="pr-2"><input data-f="description" maxlength="300" value="${esc(p.description)}" class="border rounded px-2 py-1 w-full min-w-[14rem]" /></td>
+          <td class="whitespace-nowrap">
+            <button onclick="saveProduct('${esc(p.id)}', this)" class="bg-blue-900 hover:bg-blue-800 text-white text-xs font-semibold px-3 py-1.5 rounded">Save</button>
+            ${p.archived
+              ? `<button onclick="setArchived('${esc(p.id)}', false)" class="ml-1 border border-slate-300 text-xs font-semibold px-3 py-1.5 rounded hover:bg-slate-50">Restore</button>`
+              : `<button onclick="deleteProduct('${esc(p.id)}', '${esc(p.name)}')" class="ml-1 bg-red-600 hover:bg-red-500 text-white text-xs font-semibold px-3 py-1.5 rounded">Delete</button>`}
+          </td>
+        </tr>`).join('');
+    } catch (e) {
+      showMessage(e.message);
+    }
+  }
+
+  async function saveProduct(id, button) {
+    const row = button.closest('tr');
+    const field = (f) => row.querySelector(`[data-f="${f}"]`).value;
+    const body = {
+      name: field('name'),
+      category: field('category'),
+      price: Number(field('price')),
+      stock: Number(field('stock')),
+      description: field('description'),
+    };
+    try {
+      await api(`/api/admin/products/${id}`, { method: 'PATCH', body });
+      showMessage(`${id} saved`, true);
+      loadProducts();
+    } catch (e) {
+      showMessage(e.message);
+    }
+  }
+
+  async function deleteProduct(id, name) {
+    if (!confirm(`Delete "${name}"?\n\nProducts that appear in past orders are archived (hidden) instead, so order history stays intact.`)) return;
+    try {
+      const data = await api(`/api/admin/products/${id}`, { method: 'DELETE' });
+      showMessage(data.action === 'deleted' ? `${id} deleted` : `${id} has order history, so it was archived (hidden from the shop)`, true);
+      loadProducts();
+    } catch (e) {
+      showMessage(e.message);
+    }
+  }
+
+  async function setArchived(id, archived) {
+    try {
+      await api(`/api/admin/products/${id}`, { method: 'PATCH', body: { archived } });
+      showMessage(`${id} restored`, true);
+      loadProducts();
+    } catch (e) {
+      showMessage(e.message);
+    }
+  }
+
+  async function createProduct(event) {
+    event.preventDefault();
+    try {
+      await api('/api/admin/products', {
+        method: 'POST',
+        body: {
+          name: document.getElementById('newName').value,
+          category: document.getElementById('newCategory').value,
+          price: Number(document.getElementById('newPrice').value),
+          stock: Number(document.getElementById('newStock').value),
+          description: document.getElementById('newDesc').value,
+        },
+      });
+      event.target.reset();
+      toggleAddProduct();
+      showMessage('Product added', true);
+      loadProducts();
+    } catch (e) {
+      showMessage(e.message);
+    }
+  }
+
+  if (state.token) {
+    load(1);
+    loadProducts();
+  } else {
+    showMessage('Enter the admin token to load orders.');
+  }
+</script>
+</body>
+</html>
