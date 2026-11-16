@@ -1,0 +1,29 @@
+name: Nightly database backup
+
+on:
+  schedule:
+    - cron: '30 1 * * *'   # 01:30 UTC every day
+  workflow_dispatch: {}
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dump database with a matching pg_dump version
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          mkdir -p backups
+          STAMP=$(date -u +%Y%m%dT%H%M%SZ)
+          docker run --rm -e DATABASE_URL="$DATABASE_URL" postgres:17-alpine \
+            sh -c 'pg_dump --format=custom --no-owner --no-privileges "$DATABASE_URL"' \
+            > "backups/ress-$STAMP.dump"
+          test -s "backups/ress-$STAMP.dump"   # fail if the dump is empty
+          ls -lh backups
+
+      - name: Keep the dump (GitHub retains artifacts for 30 days)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ress-db-backup-${{ github.run_id }}
+          path: backups/
+          retention-days: 30
