@@ -25,6 +25,7 @@ async function main() {
     isProduction: config.isProduction,
     trustProxy: config.trustProxy,
     bankDetails: config.bankDetails,
+    emailEnabled: config.emailEnabled,
   });
 
   server.listen(config.port, () => {
