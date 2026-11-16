@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: ress-debb-order-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false        # Neon connection string (postgres://...?sslmode=require)
+      - key: DATABASE_SSL
+        value: "true"
+      - key: ADMIN_TOKEN
+        generateValue: true  # Render generates a random 32+ character value; view it in the dashboard
+      - key: APP_URL
+        sync: false        # https://your-service.onrender.com or your custom domain
+      - key: MAIL_API_KEY
+        sync: false        # Resend API key
+      - key: MAIL_FROM
+        sync: false        # e.g. "Ress - Debb <no-reply@yourdomain.com>" (domain verified at Resend)
+      - key: BANK_TRANSFER_DETAILS
+        sync: false        # Account details shown to bank-transfer customers (multi-line text is fine)
+      - key: TRUST_PROXY
+        value: "1"         # Render terminates TLS and forwards the client IP
