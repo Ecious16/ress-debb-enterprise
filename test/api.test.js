@@ -621,3 +621,29 @@ test('the site ships a web app manifest, icons and a service worker', async () =
   assert.equal(sw.status, 200);
   assert.match(await sw.text(), /\/api\//); // the worker explicitly skips API calls
 });
+
+// ---------- Without email (no MAIL_API_KEY in production) ----------
+
+test('without email configured, sign-up is verified at once and password reset is unavailable', async () => {
+  const noEmail = createApp({ pool, mailer, adminToken: ADMIN, emailEnabled: false, limits: LIMITS_OFF });
+  await new Promise((resolve) => noEmail.server.listen(0, '127.0.0.1', resolve));
+  const base2 = `http://127.0.0.1:${noEmail.server.address().port}`;
+  const post = (path, body) => fetch(base2 + path, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+  });
+  try {
+    const sentBefore = sent.length;
+    const email = uniqueEmail();
+    const signup = await post('/api/auth/signup', { name: 'No Mail', email, phone: '08098765432', password: 'longenough1' });
+    assert.equal(signup.status, 201);
+    assert.equal(sent.length, sentBefore); // no verification email is attempted
+
+    const login = await post('/api/auth/login', { email, password: 'longenough1' });
+    assert.equal(login.status, 200);
+
+    const reset = await post('/api/auth/forgot-password', { email });
+    assert.equal(reset.status, 503);
+  } finally {
+    await new Promise((resolve) => noEmail.server.close(resolve));
+  }
+});
