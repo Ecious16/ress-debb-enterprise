@@ -13,7 +13,7 @@ Test
 Tests wipe every table, so they require their own database. A local Postgres in Docker works well:
 
 docker run -d --name ress-pg -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=ress_test -p 5544:5432 postgres:16-alpine
-TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5544/ress_test npm test      # 24 API tests
+TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5544/ress_test npm test      # 37 API tests
 DATABASE_URL is deliberately not read by the tests. For a Neon dev branch, use its URL as TEST_DATABASE_URL and add TEST_DATABASE_SSL=true. Never point the tests at the main or production branch.
 
 Browser test (needs Google Chrome installed, and a second database that it wipes):
@@ -63,7 +63,7 @@ Level	Where
 2. Accounts, email verification, password reset, validation	/api/auth/*, server/validation.js
 3. Cancellation and stock	POST /api/orders/:id/cancel: Pending or Processing only. Stock is restored in the same transaction
 4. Idempotency and history	Idempotency-Key header on POST /api/orders; GET /api/orders?status=active|completed|cancelled&page=&pageSize=
-5. Rate limits and admin	Per-IP limits on order create, cancel, lookup and auth. /admin portal: order status changes, and add/edit products (/api/admin/products)
+5. Rate limits and admin	Per-IP limits on order create, cancel, lookup and auth. /admin portal: order status changes, and add/edit products and their photos (/api/admin/products, /api/admin/products/:id/image)
 Rules worth knowing
 Stock is safe under concurrency. Each order locks its product rows (SELECT … FOR UPDATE) inside a transaction, and the database rejects negative stock with a CHECK constraint. Two buyers cannot take the last unit.
 Order IDs are RDE- followed by 6 random digits (900,000 possible IDs). Each is checked against the database before use. Widen the format before reaching a few hundred thousand orders.
