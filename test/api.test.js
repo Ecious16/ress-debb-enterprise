@@ -606,6 +606,88 @@ test('product delete requires the admin token', async () => {
   assert.equal((await call('DELETE', '/api/admin/products/P-001')).status, 401);
 });
 
+// ---------- Product photos ----------
+
+// A valid 1x1 PNG.
+const PNG_1X1 = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+  'base64',
+);
+
+async function putPhoto(id, bytes, type, token = ADMIN) {
+  const headers = { 'Content-Type': type };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  return fetch(`${base}/api/admin/products/${id}/image`, { method: 'PUT', headers, body: bytes });
+}
+
+test('admin uploads a photo; the shop shows it and serves the bytes with revalidation', async () => {
+  const up = await putPhoto('P-001', PNG_1X1, 'image/png');
+  assert.equal(up.status, 200);
+  const upBody = await up.json();
+  assert.equal(upBody.product.imageUrl, '/api/products/P-001/image');
+
+  const shop = await call('GET', '/api/products?q=mouse');
+  assert.equal(shop.data.products[0].imageUrl, '/api/products/P-001/image');
+  // Image bytes never appear in the JSON payload.
+  assert.equal(shop.data.products[0].imageData, undefined);
+
+  const img = await fetch(`${base}/api/products/P-001/image`);
+  assert.equal(img.status, 200);
+  assert.equal(img.headers.get('content-type'), 'image/png');
+  assert.equal(img.headers.get('cache-control'), 'no-cache');
+  assert.equal(img.headers.get('x-content-type-options'), 'nosniff');
+  const etag = img.headers.get('etag');
+  assert.ok(etag);
+  assert.deepEqual(Buffer.from(await img.arrayBuffer()), PNG_1X1);
+
+  const again = await fetch(`${base}/api/products/P-001/image`, { headers: { 'If-None-Match': etag } });
+  assert.equal(again.status, 304);
+});
+
+test('products without a photo have a null imageUrl and no image route', async () => {
+  const shop = await call('GET', '/api/products?q=usb-c');
+  assert.equal(shop.data.products[0].id, 'P-002');
+  assert.equal(shop.data.products[0].imageUrl, null);
+  const img = await call('GET', '/api/products/P-002/image');
+  assert.equal(img.status, 404);
+});
+
+test('a photo can be uploaded when the product is created, and removed later', async () => {
+  const created = await call('POST', '/api/admin/products', {
+    body: { name: 'Photo Test Item', category: 'Packaging', price: 100, stock: 1, description: '' },
+    headers: adminHeaders,
+  });
+  const id = created.data.product.id;
+  assert.equal(created.data.product.imageUrl, null);
+
+  assert.equal((await putPhoto(id, PNG_1X1, 'image/png')).status, 200);
+  assert.equal((await fetch(`${base}/api/products/${id}/image`)).status, 200);
+
+  const removed = await call('DELETE', `/api/admin/products/${id}/image`, { headers: adminHeaders });
+  assert.equal(removed.status, 200);
+  assert.equal(removed.data.product.imageUrl, null);
+  assert.equal((await call('GET', `/api/products/${id}/image`)).status, 404);
+});
+
+test('photo uploads are checked: type, bytes, size, product and admin token', async () => {
+  // Declared type must be an allowed image type.
+  assert.equal((await putPhoto('P-003', PNG_1X1, 'image/gif')).status, 415);
+  // Declared type must match the actual bytes (a PNG labelled as JPEG is refused).
+  assert.equal((await putPhoto('P-003', PNG_1X1, 'image/jpeg')).status, 400);
+  // Non-image content is refused.
+  assert.equal((await putPhoto('P-003', Buffer.from('<script>alert(1)</script>'), 'image/png')).status, 400);
+  // Too large.
+  const big = Buffer.concat([PNG_1X1, Buffer.alloc(300 * 1024)]);
+  assert.equal((await putPhoto('P-003', big, 'image/png')).status, 413);
+  // Unknown product.
+  assert.equal((await putPhoto('P-999', PNG_1X1, 'image/png')).status, 404);
+  // Admin token required.
+  assert.equal((await putPhoto('P-003', PNG_1X1, 'image/png', null)).status, 401);
+  assert.equal((await putPhoto('P-003', PNG_1X1, 'image/png', 'wrong-token-wrong-token-wrong-token-00')).status, 403);
+  // Nothing was stored by any of the refused uploads.
+  assert.equal((await call('GET', '/api/products/P-003/image')).status, 404);
+});
+
 // ---------- PWA ----------
 
 test('the site ships a web app manifest, icons and a service worker', async () => {
