@@ -36,13 +36,16 @@
         <input id="newStock" required type="number" min="0" step="1" placeholder="Stock" class="border rounded px-2 py-1.5 text-sm" />
         <button class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm rounded px-3 py-1.5">Save new</button>
         <input id="newDesc" maxlength="300" placeholder="Description (optional)" class="md:col-span-6 border rounded px-2 py-1.5 text-sm" />
+        <label class="md:col-span-6 text-sm text-slate-600">Photo (optional, PNG, JPEG or WebP, max 300 KB)
+          <input id="newImage" type="file" accept="image/png,image/jpeg,image/webp" class="block mt-1 text-sm" />
+        </label>
       </form>
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
             <tr class="text-left text-slate-500 border-b">
               <th class="py-2 pr-2">ID</th><th class="pr-2">Name</th><th class="pr-2">Category</th>
-              <th class="pr-2">Price (₦)</th><th class="pr-2">Stock</th><th class="pr-2">Description</th><th></th>
+              <th class="pr-2">Price (₦)</th><th class="pr-2">Stock</th><th class="pr-2">Description</th><th class="pr-2">Photo</th><th></th>
             </tr>
           </thead>
           <tbody id="productRows"></tbody>
@@ -202,6 +205,11 @@
           <td class="pr-2"><input data-f="price" type="number" min="0" step="1" value="${p.price}" class="border rounded px-2 py-1 w-28" /></td>
           <td class="pr-2"><input data-f="stock" type="number" min="0" step="1" value="${p.stock}" class="border rounded px-2 py-1 w-24 ${p.stock === 0 ? 'border-red-400' : ''}" /></td>
           <td class="pr-2"><input data-f="description" maxlength="300" value="${esc(p.description)}" class="border rounded px-2 py-1 w-full min-w-[14rem]" /></td>
+          <td class="pr-2 align-top min-w-[10rem]">
+            ${p.imageUrl ? `<img src="${esc(p.imageUrl)}" alt="" class="w-16 h-16 object-cover rounded border mb-1" />` : '<div class="text-xs text-slate-400 mb-1">No photo</div>'}
+            <input type="file" accept="image/png,image/jpeg,image/webp" onchange="uploadPhoto('${esc(p.id)}', this)" class="text-xs w-40" />
+            ${p.imageUrl ? `<button onclick="removePhoto('${esc(p.id)}')" class="block text-xs text-red-600 hover:underline mt-1">Remove photo</button>` : ''}
+          </td>
           <td class="whitespace-nowrap">
             <button onclick="saveProduct('${esc(p.id)}', this)" class="bg-blue-900 hover:bg-blue-800 text-white text-xs font-semibold px-3 py-1.5 rounded">Save</button>
             ${p.archived
@@ -254,10 +262,44 @@
     }
   }
 
+  async function uploadPhoto(id, input) {
+    const file = input.files[0];
+    if (!file) return;
+    try {
+      await sendPhoto(id, file);
+      showMessage(`${id} photo saved`, true);
+      loadProducts();
+    } catch (e) {
+      showMessage(e.message);
+    }
+  }
+
+  async function sendPhoto(id, file) {
+    const res = await fetch(`/api/admin/products/${id}/image`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${state.token}`, 'Content-Type': file.type },
+      body: file,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `Photo upload failed (${res.status})`);
+    return data;
+  }
+
+  async function removePhoto(id) {
+    if (!confirm(`Remove the photo from ${id}?`)) return;
+    try {
+      await api(`/api/admin/products/${id}/image`, { method: 'DELETE' });
+      showMessage(`${id} photo removed`, true);
+      loadProducts();
+    } catch (e) {
+      showMessage(e.message);
+    }
+  }
+
   async function createProduct(event) {
     event.preventDefault();
     try {
-      await api('/api/admin/products', {
+      const created = await api('/api/admin/products', {
         method: 'POST',
         body: {
           name: document.getElementById('newName').value,
@@ -267,6 +309,18 @@
           description: document.getElementById('newDesc').value,
         },
       });
+      const photo = document.getElementById('newImage').files[0];
+      if (photo) {
+        try {
+          await sendPhoto(created.product.id, photo);
+        } catch (e) {
+          showMessage(`${created.product.id} was added, but the photo was not saved: ${e.message}`);
+          event.target.reset();
+          toggleAddProduct();
+          loadProducts();
+          return;
+        }
+      }
       event.target.reset();
       toggleAddProduct();
       showMessage('Product added', true);
