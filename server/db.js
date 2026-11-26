@@ -88,6 +88,9 @@ CREATE TABLE IF NOT EXISTS idempotency_keys (
 ALTER TABLE products ADD COLUMN IF NOT EXISTS archived BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_method TEXT NOT NULL DEFAULT 'cod';
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status TEXT NOT NULL DEFAULT 'pay_on_delivery';
+-- Product photo, stored in the database so it survives redeploys on hosts with an ephemeral disk.
+ALTER TABLE products ADD COLUMN IF NOT EXISTS image_type TEXT;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS image_data BYTEA;
 `;
 
 function createPool({ connectionString, ssl = false }) {
