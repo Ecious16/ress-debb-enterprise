@@ -21,13 +21,9 @@
 
   <!-- Navigation -->
   <header class="bg-white shadow-sm sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <a href="#" class="flex items-center space-x-2">
-        <div class="w-10 h-10 rounded-lg bg-blue-900 text-amber-400 flex items-center justify-center font-bold text-lg shadow">RD</div>
-        <div>
-          <span class="font-extrabold text-lg sm:text-xl tracking-tight text-slate-900">Ress - Debb</span>
-          <span class="block text-xs text-blue-700 font-semibold -mt-1">ENTERPRISE</span>
-        </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <a href="#" class="flex items-center">
+        <img src="/logo.png" alt="Ress - Debb Enterprise" class="h-16 w-auto" />
       </a>
       <nav class="hidden md:flex space-x-8 text-sm font-medium text-slate-600">
         <a href="#catalog" class="hover:text-blue-800 transition">Shop / Catalog</a>
@@ -364,6 +360,11 @@
       const btn = p.stock === 0 ? 'Unavailable' : maxed ? 'Max in cart' : inCart ? 'Add more' : 'Add to cart';
       return `
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col">
+          <div class="aspect-[4/3] bg-slate-100 rounded-lg mb-4 overflow-hidden flex items-center justify-center">
+            ${p.imageUrl
+              ? `<img src="${esc(p.imageUrl)}" alt="${esc(p.name)}" loading="lazy" class="w-full h-full object-cover" />`
+              : '<i class="fa-solid fa-box text-4xl text-slate-300" aria-hidden="true"></i>'}
+          </div>
           <div class="flex justify-between items-start mb-2">
             <span class="text-xs font-semibold text-blue-800 uppercase">${esc(CATEGORY_LABELS[p.category])}</span>
             <span class="text-xs px-2 py-1 rounded-full font-semibold ${cls}">${label}</span>
