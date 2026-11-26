@@ -25,6 +25,10 @@ const VERIFY_TTL_MS = 24 * 60 * 60 * 1000;
 const RESET_TTL_MS = 60 * 60 * 1000;
 const TOKEN_RE = /^[a-f0-9]{64}$/;
 const ORDER_ID_RE = /^RDE-\d{6}$/;
+const MAX_IMAGE_BYTES = 300 * 1024;
+const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+// Product columns sent to the client. The image bytes are deliberately excluded; only has_image is returned.
+const PRODUCT_COLUMNS = 'id, name, category, price, stock, description, archived, (image_type IS NOT NULL) AS has_image';
 
 const ORDER_STATUSES = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
 // Customers may cancel only while the order has not left the warehouse.
@@ -118,6 +122,36 @@ function readJson(req) {
   });
 }
 
+/** Reads a raw request body (used for image uploads), refusing anything over the limit. */
+function readBody(req, limit) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    let size = 0;
+    let tooLarge = false;
+    req.on('data', (chunk) => {
+      size += chunk.length;
+      if (size > limit) {
+        tooLarge = true;
+        return;
+      }
+      chunks.push(chunk);
+    });
+    req.on('end', () => {
+      if (tooLarge) return reject(new HttpError(413, 'Image must be 300 KB or smaller'));
+      resolve(Buffer.concat(chunks));
+    });
+    req.on('error', reject);
+  });
+}
+
+/** Identifies PNG, JPEG or WebP from the file's leading bytes. Returns the MIME type or null. */
+function sniffImage(buf) {
+  if (buf.length >= 8 && buf.subarray(0, 8).equals(PNG_SIGNATURE)) return 'image/png';
+  if (buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return 'image/jpeg';
+  if (buf.length >= 12 && buf.toString('ascii', 0, 4) === 'RIFF' && buf.toString('ascii', 8, 12) === 'WEBP') return 'image/webp';
+  return null;
+}
+
 function clientIp(req, trustProxy) {
   if (trustProxy && req.headers['x-forwarded-for']) {
     return String(req.headers['x-forwarded-for']).split(',')[0].trim();
@@ -166,6 +200,7 @@ function publicProduct(p) {
   return {
     id: p.id, name: p.name, category: p.category, price: p.price, stock: p.stock,
     description: p.description, stockStatus, archived: Boolean(p.archived),
+    imageUrl: p.has_image ? `/api/products/${p.id}/image` : null,
   };
 }
 
@@ -411,10 +446,28 @@ function createApp(options = {}) {
         conditions.push(`(name ILIKE $${params.length} OR description ILIKE $${params.length})`);
       }
       const rows = await pool.query(
-        `SELECT * FROM products WHERE ${conditions.join(' AND ') || 'TRUE'} ORDER BY id`,
+        `SELECT ${PRODUCT_COLUMNS} FROM products WHERE ${conditions.join(' AND ') || 'TRUE'} ORDER BY id`,
         params,
       );
       return send(res, 200, { products: rows.rows.map(publicProduct) });
+    }
+
+    const productImage = /^\/api\/products\/(P-\d{3})\/image$/i.exec(p);
+    if (method === 'GET' && productImage) {
+      const row = (await pool.query(
+        'SELECT image_type, image_data FROM products WHERE id = $1',
+        [productImage[1].toUpperCase()],
+      )).rows[0];
+      if (!row || !row.image_data) throw new HttpError(404, 'No image for this product');
+      // Browsers revalidate on every view; an unchanged image gets a cheap 304 instead of the bytes.
+      const etag = `"${crypto.createHash('sha256').update(row.image_data).digest('hex').slice(0, 32)}"`;
+      const headers = { 'Content-Type': row.image_type, 'Cache-Control': 'no-cache', ETag: etag };
+      if (req.headers['if-none-match'] === etag) {
+        res.writeHead(304, headers);
+        return res.end();
+      }
+      res.writeHead(200, { ...headers, 'Content-Length': row.image_data.length });
+      return res.end(row.image_data);
     }
 
     // ---- Accounts ----
@@ -710,7 +763,7 @@ function createApp(options = {}) {
       }
 
       if (method === 'GET' && p === '/api/admin/products') {
-        const rows = await pool.query('SELECT * FROM products ORDER BY id');
+        const rows = await pool.query(`SELECT ${PRODUCT_COLUMNS} FROM products ORDER BY id`);
         return send(res, 200, { products: rows.rows.map(publicProduct) });
       }
 
@@ -724,7 +777,7 @@ function createApp(options = {}) {
             )).rows[0].n;
             const id = `P-${String(next).padStart(3, '0')}`;
             const inserted = await c.query(
-              'INSERT INTO products (id, name, category, price, stock, description) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+              `INSERT INTO products (id, name, category, price, stock, description) VALUES ($1, $2, $3, $4, $5, $6) RETURNING ${PRODUCT_COLUMNS}`,
               [id, value.name, value.category, value.price, value.stock, value.description],
             );
             return inserted.rows[0];
@@ -736,6 +789,34 @@ function createApp(options = {}) {
         }
       }
 
+      const productImageAdmin = /^\/api\/admin\/products\/(P-\d{3})\/image$/i.exec(p);
+      if (method === 'PUT' && productImageAdmin) {
+        const id = productImageAdmin[1].toUpperCase();
+        const declared = String(req.headers['content-type'] || '').split(';')[0].trim().toLowerCase();
+        if (!['image/png', 'image/jpeg', 'image/webp'].includes(declared)) {
+          throw new HttpError(415, 'Upload a PNG, JPEG or WebP image');
+        }
+        const data = await readBody(req, MAX_IMAGE_BYTES);
+        // The bytes must match the declared type, so a non-image cannot be served as one.
+        if (sniffImage(data) !== declared) throw new HttpError(400, 'The file is not a valid PNG, JPEG or WebP image');
+        const row = (await pool.query(
+          `UPDATE products SET image_type = $2, image_data = $3 WHERE id = $1 RETURNING ${PRODUCT_COLUMNS}`,
+          [id, declared, data],
+        )).rows[0];
+        if (!row) throw new HttpError(404, 'No product found with that ID');
+        return send(res, 200, { product: publicProduct(row) });
+      }
+
+      if (method === 'DELETE' && productImageAdmin) {
+        const id = productImageAdmin[1].toUpperCase();
+        const row = (await pool.query(
+          `UPDATE products SET image_type = NULL, image_data = NULL WHERE id = $1 RETURNING ${PRODUCT_COLUMNS}`,
+          [id],
+        )).rows[0];
+        if (!row) throw new HttpError(404, 'No product found with that ID');
+        return send(res, 200, { product: publicProduct(row) });
+      }
+
       const productEdit = /^\/api\/admin\/products\/(P-\d{3})$/i.exec(p);
       if (method === 'PATCH' && productEdit) {
         const { errors, value } = validateProduct(await readJson(req), { partial: true });
@@ -744,7 +825,7 @@ function createApp(options = {}) {
         const keys = Object.keys(value);
         const sets = keys.map((k, i) => `${k} = $${i + 2}`).join(', ');
         const row = (await pool.query(
-          `UPDATE products SET ${sets} WHERE id = $1 RETURNING *`,
+          `UPDATE products SET ${sets} WHERE id = $1 RETURNING ${PRODUCT_COLUMNS}`,
           [productEdit[1].toUpperCase(), ...keys.map((k) => value[k])],
         )).rows[0];
         if (!row) throw new HttpError(404, 'No product found with that ID');
